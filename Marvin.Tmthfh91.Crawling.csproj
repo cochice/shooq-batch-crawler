@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AWSSDK.S3" Version="3.7.400" />
+    <PackageReference Include="CloudinaryDotNet" Version="1.27.7" />
+    <PackageReference Include="Dapper" Version="2.1.66" />
+    <PackageReference Include="Google.Apis" Version="1.72.0" />
+    <PackageReference Include="Google.Apis.Auth.AspNetCore3" Version="1.72.0" />
+    <PackageReference Include="Google.Apis.Drive.v3" Version="1.72.0.3938" />
+    <PackageReference Include="Google.Apis.YouTube.v3" Version="1.70.0.3847" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.12.2" />
+    <PackageReference Include="Imagekit" Version="5.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="NLog" Version="6.0.3" />
+    <PackageReference Include="Npgsql" Version="9.0.3" />
+    <PackageReference Include="Selenium.WebDriver" Version="4.35.0" />
+    <PackageReference Include="Selenium.WebDriver.ChromeDriver" Version="139.0.7258.13800" />
+    <PackageReference Include="System.Net.Http" Version="4.3.4" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="10.0.0-preview.7.25380.108" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="NLog.config" CopyToOutputDirectory="Always" />
+  </ItemGroup>
+
+</Project>

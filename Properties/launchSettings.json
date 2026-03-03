@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "Development": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "CLOUDINARY_CLOUD_NAME": "docnrvxpv",
+        "CLOUDINARY_API_KEY": "487642669825337",
+        "CLOUDINARY_API_SECRET": "SJsH7npjeyhAhcBVs55xKWSxOyw"
+      }
+    }
+  }
+}
