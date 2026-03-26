@@ -19,6 +19,7 @@ namespace Marvin.Tmthfh91.Crawling.Model
         public bool Success { get; set; }
         public string? ErrorMessage { get; set; }
         public int Index { get; set; }
+        public byte[]? ImageBytes { get; set; }  // NSFW 체크용 원본 바이트
     }
 
     public class UploadProgress

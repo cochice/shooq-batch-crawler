@@ -19,6 +19,8 @@ namespace Marvin.Tmthfh91.Crawling.Crawler
         public readonly Random _random;
         public readonly List<string> _userAgents;
         public readonly DatabaseManager _dbManager;
+        protected readonly NsfwService _nsfwService;
+        private readonly HashSet<int> _adultDetectedNos = new();
 
         // HTML 정리용 불필요한 문자 목록
         protected List<string> ArrayUnnecessaryChars = ["공유새창"];
@@ -106,6 +108,7 @@ namespace Marvin.Tmthfh91.Crawling.Crawler
             _httpClient = new HttpClient(handler);
             _random = new Random();
             _dbManager = new DatabaseManager();
+            _nsfwService = new NsfwService(new HttpClient { Timeout = TimeSpan.FromSeconds(30) });
 
             // 다양한 User-Agent 준비
             _userAgents =
@@ -202,6 +205,29 @@ namespace Marvin.Tmthfh91.Crawling.Crawler
             return tempDoc.DocumentNode.InnerHtml.Trim();
         }
 
+        // 이미지 파일 여부 확인 (NSFW 체크 대상 필터링용)
+        private static readonly HashSet<string> ImageExtensions = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".tiff", ".tif"
+        };
+
+        private bool IsImageUrl(string url)
+        {
+            if (string.IsNullOrEmpty(url)) return false;
+            if (url.Contains("youtube", StringComparison.OrdinalIgnoreCase)) return false;
+
+            try
+            {
+                var uri = new Uri(url);
+                var ext = Path.GetExtension(uri.GetLeftPart(UriPartial.Path))?.ToLower();
+                return !string.IsNullOrEmpty(ext) ? ImageExtensions.Contains(ext) : true; // 확장자 없으면 이미지로 간주
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         // Cloudflare R2에 이미지/비디오 업로드
         protected async Task<string?> UploadToR2(List<string> imageSources, int orgNo)
         {
@@ -223,6 +249,26 @@ namespace Marvin.Tmthfh91.Crawling.Crawler
                         IsActive = true,
                         No = orgNo
                     });
+
+                    // NSFW 이미지 체크 (이미 성인 판정된 글은 스킵, 원본 바이트 직접 전달)
+                    if (!_adultDetectedNos.Contains(orgNo) && result.Success && result.ImageBytes != null && IsImageUrl(retUrl))
+                    {
+                        try
+                        {
+                            var fileName = Path.GetFileName(new Uri(retUrl).GetLeftPart(UriPartial.Path));
+                            var nsfwResult = await _nsfwService.CheckImageBytesAsync(result.ImageBytes, fileName);
+                            if (nsfwResult.IsAdult)
+                            {
+                                _adultDetectedNos.Add(orgNo);
+                                await _dbManager.UpdateAdultYn(orgNo, "Y");
+                                Console.WriteLine($"  ⚠️ 성인 콘텐츠 감지 [no: {orgNo}, category: {nsfwResult.Category}, porn: {nsfwResult.PornScore:F3}, hentai: {nsfwResult.HentaiScore:F3}, sexy: {nsfwResult.SexyScore:F3}]");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"  NSFW 체크 실패 [no: {orgNo}]: {ex.Message}");
+                        }
+                    }
                 }
             }
             return retUrl;

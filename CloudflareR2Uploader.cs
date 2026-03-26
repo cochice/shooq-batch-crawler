@@ -47,9 +47,9 @@ namespace Marvin.Tmthfh91.Crawling
         }
 
         /// <summary>
-        /// 단일 이미지 업로드
+        /// 단일 이미지 업로드 (R2 URL과 원본 바이트 반환)
         /// </summary>
-        public async Task<string> UploadFromUrl(string imageUrl, string? fileName = null)
+        public async Task<(string Url, byte[] Bytes)> UploadFromUrl(string imageUrl, string? fileName = null)
         {
             try
             {
@@ -77,8 +77,8 @@ namespace Marvin.Tmthfh91.Crawling
 
                 var putResponse = await _s3Client.PutObjectAsync(putRequest);
 
-                // 4. URL 리턴
-                return $"{PublicUrl}/{key}";
+                // 4. URL + 원본 바이트 리턴
+                return ($"{PublicUrl}/{key}", imageBytes);
             }
             catch (Exception ex)
             {
@@ -193,6 +193,8 @@ namespace Marvin.Tmthfh91.Crawling
                     var fileName = GenerateFileName(imageUrl, index: i);
                     var uploadedUrl = string.Empty;
 
+                    byte[]? imageBytes = null;
+
                     // youtube 정보가 포함 되어 있으면 그대로 저장
                     if (imageUrl.Contains("youtube", StringComparison.CurrentCultureIgnoreCase))
                     {
@@ -201,7 +203,9 @@ namespace Marvin.Tmthfh91.Crawling
                     // Claudflare R2 업로드
                     else
                     {
-                        uploadedUrl = await UploadFromUrl(imageUrl, fileName);
+                        var (url, bytes) = await UploadFromUrl(imageUrl, fileName);
+                        uploadedUrl = url;
+                        imageBytes = bytes;
                     }
 
                     results.Add(new ImageUploadResult
@@ -209,7 +213,8 @@ namespace Marvin.Tmthfh91.Crawling
                         OriginalUrl = imageUrl,
                         UploadedUrl = uploadedUrl,
                         Success = true,
-                        Index = i
+                        Index = i,
+                        ImageBytes = imageBytes
                     });
                 }
                 catch (Exception ex)

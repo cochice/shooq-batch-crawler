@@ -98,6 +98,26 @@ namespace Marvin.Tmthfh91.Crawling
             }
         }
 
+        public async Task UpdateAdultYn(int no, string adultYn)
+        {
+            try
+            {
+                using var conn = new NpgsqlConnection(_connectionString);
+                await conn.OpenAsync();
+
+                var cmd = new NpgsqlCommand(
+                    "UPDATE tmtmfhgi.site_bbs_info SET adult_yn = @adult_yn WHERE no = @no", conn);
+                cmd.Parameters.AddWithValue("adult_yn", adultYn);
+                cmd.Parameters.AddWithValue("no", no);
+
+                await cmd.ExecuteNonQueryAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"UpdateAdultYn 오류 [no: {no}]: {ex.Message}");
+            }
+        }
+
         public async Task<int> InsertOptimizedImagesAndReturnIdAsync(OptimizedImageData dto)
         {
             const string sql = @"
